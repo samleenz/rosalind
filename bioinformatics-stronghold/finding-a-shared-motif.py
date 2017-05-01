@@ -1,3 +1,18 @@
+#==============================================================================
+# Recursion was a bad idea -- there are a lot of possible options...
+# maybe try implement in R?
+#==============================================================================
+
+
+
+
+%cd '/Users/slee/programming/rosalind/bioinformatics-stronghold'
+import re
+import itertools
+import sys
+#==============================================================================
+# functions
+#==============================================================================
 def parse_fasta(filename):
     '''
     * Create a dictionary of ID/seq pairs from a FASTA file
@@ -27,22 +42,130 @@ def parse_fasta(filename):
     return seqdict
 
 
-# fh = raw_input('data import filename:')
-# wfile = raw_input('write to filename:')
-import re
-import itertools
-fh = 'testdataset.txt'
-wfile = 'testoutput.txt'
+
+def sub_wrap(seq):
+    '''
+    wrapper for substr to correct scope of list used for string storage
+    '''
+    lst = []
+    def substr(seq):
+     '''
+     return all substrings of a string that begin from the beginning of the string     
+     '''
+     if len(seq) == 0: 
+#         print("length is 0 and list contains{} and seq is {}".format(lst,seq))
+         return lst        
+     else: 
+#         print("list contains{} and seq is {}".format(lst,seq))
+         lst.append(seq)
+         return substr(seq[:-1])
+#    print(lst)
+    return substr(seq)
+
+
+
+
+def sub_wrap_wrap(fullseq):
+    '''
+     wrapper function to apply substr from each base from left to right in string
+     returns a set of the substrings found
+    '''
+    comb_substr=[]
+    for i in range(len(fullseq)):
+        comb_substr.append(sub_wrap(fullseq[i:]))
+#        print(sub_wrap(fullseq[i:]))
+    substrings = list(itertools.chain.from_iterable(comb_substr))
+    return set(substrings)
+
+def string_sort(string_list):
+    '''
+    requires the parameter to be a list, not a set
+    sorts strings by length
+    takes a list of strings
+    '''
+    tup_lst = []
+    for i, n in enumerate(string_list):
+        tup_lst.append((len(n),i))
+    tup_lst = sorted(tup_lst, reverse=True)
+    return [string_list[i[1]] for i in tup_lst]
+
+
+
+
+#==============================================================================
+#  script - for recursive approach
+#==============================================================================
+
+#1 locate and import file in / file out
+#fh = 'datasets/test_dataset.txt'
+#wfile = 'outputs/testoutput.txt'
+ fh = 'datasets/rosalind_lcsm.txt'
+ wfile = 'finding-a-shared-motif-output.txt'
 seqdict = parse_fasta(fh)
 DNAstrings = list(seqdict.values())
-print (DNAstrings)
+#print (DNAstrings)
 
-x = list(itertools.combinations(DNAstrings[0], 3))
-print (x)
+#2 create nested list with each sequences substring
+substr_lst = []
+for seqx in DNAstrings:
+    substr_lst.append(sub_wrap_wrap(seqx))
 
-lcs= ''
-# NOTE: Write protein string to file
+#3 sort each of the substring lists in place
+for i, n in enumerate(substr_lst):
+    substr_lst[i] = string_sort(list(n))
+
+#4 iterate through first nested list to find the LCS
+
+for seq in substr_lst[0]:
+    count = 0
+    for i in range(len(substr_lst[1:])):
+        i +=1 # to correct for skipping 1st list
+        if not seq in substr_lst[i]:
+            break
+        else:
+            count +=1 
+    if count == len(substr_lst[1:]):
+        lcs = seq
+        break
+#print(lcs) 
+ 
+      
+#5 Write answer to file
 w = open(wfile, 'w')
 w.write(str(lcs))
 w.close()
 print ('written to file', wfile)
+print ('Shared motif was {}'.format(lcs))
+
+#==============================================================================
+# script - non recursive approach
+#==============================================================================
+#1 locate and import file in / file out
+#fh = 'datasets/test_dataset.txt'
+#wfile = 'outputs/testoutput.txt'
+ fh = 'datasets/rosalind_lcsm.txt'
+ wfile = 'finding-a-shared-motif-output.txt'
+seqdict = parse_fasta(fh)
+DNAstrings = list(seqdict.values())
+
+#2 create nested list with each sequences substring
+for i in 
+
+#3 sort each of the substring lists in place
+
+#4 iterate through first nested list to find the LCS
+
+
+#5 Write answer to file
+w = open(wfile, 'w')
+w.write(str(lcs))
+w.close()
+print ('written to file', wfile)
+print ('Shared motif was {}'.format(lcs))
+
+#==============================================================================
+#  test calls
+#==============================================================================
+testval = 'TAGACCA'
+
+print(sub_wrap_wrap(testval))
